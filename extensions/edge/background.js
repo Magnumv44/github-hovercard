@@ -15,40 +15,21 @@ let contentCSS = [
     'tomorrow-night.css'
 ];
 
-const INJECTORS = {
-    js: browser.tabs.executeScript.bind(browser.tabs),
-    css: browser.tabs.insertCSS.bind(browser.tabs)
-};
-
 let storage = browser.storage.sync || browser.storage.local;
 
-function inject(id, files, type, callback) {
-    let injector = INJECTORS[type];
-    if (!injector) {
-        return;
-    }
+function injectJS(tabId, files, callback) {
+    let filesList = Array.isArray(files) ? files : [files];
+    let injected = 0;
 
-    // inject code
-    if (typeof files === 'string') {
-        injector(id, {
-            code: files
-        }, callback);
-        return;
-    }
-
-    // inject files
-    let index = 0;
-    let remaining = files.length;
-
-    function injectNext() {
-        if (remaining > 0) {
-            injector(id, {
-                file: files[index]
+    function injectNextFile() {
+        if (injected < filesList.length) {
+            browser.scripting.executeScript({
+                target: { tabId: tabId },
+                files: [filesList[injected]]
             }, () => {
-                console.log('"' + files[index] + '" is injected.');
-                index++;
-                remaining--;
-                injectNext();
+                console.log('"' + filesList[injected] + '" is injected.');
+                injected++;
+                injectNextFile();
             });
         } else {
             if (typeof callback === 'function') {
@@ -56,26 +37,42 @@ function inject(id, files, type, callback) {
             }
         }
     }
-    injectNext();
+    injectNextFile();
 }
 
-function injectJS(id, content, callback) {
-    inject(id, content, 'js', callback);
-}
+function injectCSS(tabId, files, callback) {
+    let filesList = Array.isArray(files) ? files : [files];
+    let injected = 0;
 
-function injectCSS(id, content, callback) {
-    inject(id, content, 'css', callback);
+    function injectNextFile() {
+        if (injected < filesList.length) {
+            browser.scripting.insertCSS({
+                target: { tabId: tabId },
+                files: [filesList[injected]]
+            }, () => {
+                console.log('"' + filesList[injected] + '" is injected.');
+                injected++;
+                injectNextFile();
+            });
+        } else {
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }
+    }
+    injectNextFile();
 }
 
 const GITHUB_DOMAIN = 'github.com';
 
 function injector(details) {
     let tab = details.tabId;
-    injectJS(tab, contentJS);
-    injectCSS(tab, contentCSS);
+    injectJS(tab, contentJS, () => {
+        injectCSS(tab, contentCSS);
+    });
 }
 
-function bindInjector(domains) {
+function bindInjector(domains = []) {
     // always enable hovercard on GitHub
     if (domains.indexOf(GITHUB_DOMAIN) === -1) {
         domains.push(GITHUB_DOMAIN);
@@ -91,7 +88,7 @@ function bindInjector(domains) {
 function init() {
     storage.get({
         domains: []
-    }, (items) => bindInjector(items.domains));
+    }, (items = {}) => bindInjector(items.domains));
 }
 
 browser.runtime.onInstalled.addListener(init);
