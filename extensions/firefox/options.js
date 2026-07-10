@@ -1,6 +1,6 @@
 'use strict'
 
-const ITEM_TPL = `{{#domains}}<li><input type="text" ui="wide" class="domain" value="{{.}}" placeholder="github.mydomain.com"><button type="button" class="ghost icon remove" aria-label="Remove"></button></li>{{/domains}}`
+const ITEM_TPL = `{{#domains}}<li><input type="text" ui="wide" class="domain" value="{{.}}" placeholder="github.mydomain.com"><button type="button" class="remove">✕</button></li>{{/domains}}`
 const GH_DOMAIN = 'github.com'
 
 let form = $('#form')
@@ -15,7 +15,7 @@ let showSelfInput = $('#show-self')
 let sideInputs = $('[name="side"]')
 let themeInputs = $('[name="theme"]')
 let current
-let storage = chrome.storage.sync || chrome.storage.local
+let storage = browser.storage.sync || browser.storage.local
 
 function toOrigins(name) {
   return [`http://${name}/*`, `https://${name}/*`]
@@ -80,12 +80,12 @@ function save() {
     .map(toOrigins)
     .reduce(concat, [])
 
-  chrome.permissions.remove({
+  browser.permissions.remove({
     origins: revoking
   })
 
   let granting = domains.map(toOrigins).reduce(concat, [])
-  chrome.permissions.request(
+  browser.permissions.request(
     {
       origins: granting
     },
@@ -99,7 +99,7 @@ function save() {
       }
 
       storage.set(options, () => {
-        chrome.runtime.sendMessage({ event: 'optionschange' }, response => {
+        browser.runtime.sendMessage({ event: 'optionschange' }, response => {
           if (response.success) {
             log('Options saved.', 3000)
           } else {
