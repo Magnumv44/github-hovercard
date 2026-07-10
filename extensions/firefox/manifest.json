@@ -12,7 +12,8 @@
     ]
   },
   "permissions": [
-    "storage"
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "https://github.com/*",
@@ -29,5 +30,11 @@
       "id": "@github-hovercard",
       "strict_min_version": "109.0"
     }
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["jquery.js", "mustache.js", "tooltipster.js", "tripleclick.js", "hovercard.js"],
+      "matches": ["*://github.com/*"]
+    }
+  ]
 }
