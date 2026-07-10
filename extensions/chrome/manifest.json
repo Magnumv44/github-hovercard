@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "GitHub Hovercard",
   "description": "Neat hovercards for GitHub.",
   "version": "1.9.4",
@@ -7,14 +7,12 @@
     "128": "icon.png"
   },
   "background": {
-    "scripts": [
-      "background.js"
-    ],
-    "persistent": false
+    "service_worker": "background.js"
   },
   "permissions": [
-    "webNavigation",
-    "storage",
+    "storage"
+  ],
+  "host_permissions": [
     "https://github.com/*"
   ],
   "optional_permissions": [
@@ -25,8 +23,5 @@
       "*://justineo.github.io/*"
     ]
   },
-  "options_ui": {
-    "page": "options.html",
-    "chrome_style": true
-  }
+  "options_page": "options.html"
 }
