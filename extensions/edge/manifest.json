@@ -11,7 +11,8 @@
     "service_worker": "background.js"
   },
   "permissions": [
-    "storage"
+    "storage",
+    "scripting"
   ],
   "host_permissions": [
     "https://github.com/*"
@@ -24,5 +25,11 @@
       "*://justineo.github.io/*"
     ]
   },
-  "options_page": "options.html"
+  "options_page": "options.html",
+  "web_accessible_resources": [
+    {
+      "resources": ["jquery.js", "mustache.js", "tooltipster.js", "tripleclick.js", "hovercard.js"],
+      "matches": ["*://github.com/*"]
+    }
+  ]
 }
