@@ -14,40 +14,21 @@ let contentCSS = [
     'tomorrow-night.css'
 ];
 
-const INJECTORS = {
-    js: chrome.tabs.executeScript.bind(chrome.tabs),
-    css: chrome.tabs.insertCSS.bind(chrome.tabs)
-};
-
 let storage = chrome.storage.sync || chrome.storage.local;
 
-function inject(id, files, type, callback) {
-    let injector = INJECTORS[type];
-    if (!injector) {
-        return;
-    }
+function injectJS(tabId, files, callback) {
+    let filesList = Array.isArray(files) ? files : [files];
+    let injected = 0;
 
-    // inject code
-    if (typeof files === 'string') {
-        injector(id, {
-            code: files
-        }, callback);
-        return;
-    }
-
-    // inject files
-    let index = 0;
-    let remaining = files.length;
-
-    function injectNext() {
-        if (remaining > 0) {
-            injector(id, {
-                file: files[index]
+    function injectNextFile() {
+        if (injected < filesList.length) {
+            chrome.scripting.executeScript({
+                target: { tabId: tabId },
+                files: [filesList[injected]]
             }, () => {
-                console.log('"' + files[index] + '" is injected.');
-                index++;
-                remaining--;
-                injectNext();
+                console.log('"' + filesList[injected] + '" is injected.');
+                injected++;
+                injectNextFile();
             });
         } else {
             if (typeof callback === 'function') {
@@ -55,23 +36,39 @@ function inject(id, files, type, callback) {
             }
         }
     }
-    injectNext();
+    injectNextFile();
 }
 
-function injectJS(id, content, callback) {
-    inject(id, content, 'js', callback);
-}
+function injectCSS(tabId, files, callback) {
+    let filesList = Array.isArray(files) ? files : [files];
+    let injected = 0;
 
-function injectCSS(id, content, callback) {
-    inject(id, content, 'css', callback);
+    function injectNextFile() {
+        if (injected < filesList.length) {
+            chrome.scripting.insertCSS({
+                target: { tabId: tabId },
+                files: [filesList[injected]]
+            }, () => {
+                console.log('"' + filesList[injected] + '" is injected.');
+                injected++;
+                injectNextFile();
+            });
+        } else {
+            if (typeof callback === 'function') {
+                callback();
+            }
+        }
+    }
+    injectNextFile();
 }
 
 const GITHUB_DOMAIN = 'github.com';
 
 function injector(details) {
     let tab = details.tabId;
-    injectJS(tab, contentJS);
-    injectCSS(tab, contentCSS);
+    injectJS(tab, contentJS, () => {
+        injectCSS(tab, contentCSS);
+    });
 }
 
 function bindInjector(domains = []) {
