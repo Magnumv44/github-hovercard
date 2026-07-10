@@ -1,5 +1,5 @@
 {
-  "manifest_version": 2,
+  "manifest_version": 3,
   "name": "GitHub Hovercard",
   "description": "Neat hovercards for GitHub.",
   "version": "1.9.4",
@@ -9,13 +9,12 @@
   "background": {
     "scripts": [
       "background.js"
-    ],
-    "persistent": true
+    ]
   },
   "permissions": [
-    "webNavigation",
-    "webRequest",
-    "storage",
+    "storage"
+  ],
+  "host_permissions": [
     "https://github.com/*",
     "https://api.github.com/*"
   ],
@@ -25,10 +24,10 @@
   "options_ui": {
     "page": "options.html"
   },
-  "applications": {
+  "browser_specific_settings": {
     "gecko": {
       "id": "@github-hovercard",
-      "strict_min_version": "55.0"
+      "strict_min_version": "109.0"
     }
   }
 }
